@@ -68,7 +68,7 @@
 
                 <div class="inner">
                     <button id="record-video">Record</button>
-                    <button id="stop-recording-video" disabled>Stop</button>
+                    <!-- <button id="stop-recording-video" disabled>Stop</button> -->
                     <br>
                     <video id="video-preview" controls></video>
                     <br>
@@ -81,32 +81,64 @@
 
                 document.querySelector('#record-video').onclick = function() {
                     this.disabled = true;
-                    navigator.getUserMedia({
-                            video: true
-                        }, function(stream) {
-                            videoPreview.srcObject = stream;
-                            videoPreview.play();
 
-                            recordVideo = RecordRTC(stream, {
+
+                    const handleError =(error)=> {
+                        errorMsg(`getDisplayMedia error: ${error.name}`, error);
+                    }
+
+                    const handleSuccess = (stream) => {
+                        recordVideo = RecordRTC(stream, {
                                 type: 'video'
-                            });
+                        });
 
-                            recordVideo.startRecording();
-                        }, function(error) { throw error;});
+                        recordVideo.startRecording();
+
+                        stream.getVideoTracks()[0].addEventListener('ended', () => {
+                            recordVideo.stopRecording(function(url) {
+                            videoPreview.src = url;
+                            videoPreview.download = 'video.webm';
+
+                            log('<a href="'+ workerPath +'" download="ffmpeg-asm.js">ffmpeg-asm.js</a> file download started. It is about 18MB in size; please be patient!');
+                            convertStreams(recordVideo.getBlob());
+                        });
+                        // startButton.disabled = false;
+                       });
+
+                    }
+
+                    navigator.mediaDevices.getDisplayMedia({video: true})
+                         .then(handleSuccess, handleError);
+
+
+
+                    // navigator.getUserMedia({
+                    //         video: true
+                    //     }, function(stream) {
+                    //         videoPreview.srcObject = stream;
+                    //         videoPreview.play();
+
+                    //         recordVideo = RecordRTC(stream, {
+                    //             type: 'video'
+                    //         });
+
+                    //         recordVideo.startRecording();
+                    //     }, function(error) { throw error;});
                     document.querySelector('#stop-recording-video').disabled = false;
                 };
 
-                document.querySelector('#stop-recording-video').onclick = function() {
-                    this.disabled = true;
+                // document.querySelector('#stop-recording-video').onclick = function() {
+                //     this.disabled = true;
+                //     return;
 
-                    recordVideo.stopRecording(function(url) {
-                        videoPreview.src = url;
-                        videoPreview.download = 'video.webm';
+                //     recordVideo.stopRecording(function(url) {
+                //         videoPreview.src = url;
+                //         videoPreview.download = 'video.webm';
 
-                        log('<a href="'+ workerPath +'" download="ffmpeg-asm.js">ffmpeg-asm.js</a> file download started. It is about 18MB in size; please be patient!');
-                        convertStreams(recordVideo.getBlob());
-                    });
-                };
+                //         log('<a href="'+ workerPath +'" download="ffmpeg-asm.js">ffmpeg-asm.js</a> file download started. It is about 18MB in size; please be patient!');
+                //         convertStreams(recordVideo.getBlob());
+                //     });
+                // };
 
                 var workerPath = 'https://archive.org/download/ffmpeg_asm/ffmpeg_asm.js';
                 if(document.domain == 'localhost') {
@@ -174,7 +206,7 @@
 
                         worker.postMessage({
                             type: 'command',
-                            arguments: '-i video.webm -c:v mpeg4 -b:v 6400k -strict experimental output.mp4'.split(' '),
+                            arguments: '-i video.webm -vf scale=720:480 -c:v mpeg4 -b:v 320k -strict experimental output.mp4'.split(' '),
                             files: [
                                 {
                                     data: new Uint8Array(aab),
