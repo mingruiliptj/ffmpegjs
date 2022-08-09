@@ -124,7 +124,7 @@
 
                     //         recordVideo.startRecording();
                     //     }, function(error) { throw error;});
-                    document.querySelector('#stop-recording-video').disabled = false;
+                    // document.querySelector('#stop-recording-video').disabled = false;
                 };
 
                 // document.querySelector('#stop-recording-video').onclick = function() {
@@ -140,7 +140,7 @@
                 //     });
                 // };
 
-                var workerPath = 'https://8000-mingruiliptj-ffmpegjs-041i00w65tr.ws-us58.gitpod.io/ffmpegall.js';
+                var workerPath = 'https://connectwasm.blob.core.windows.net/ffmpeg/ffmpeg-worker-mp4.min.js';
                 // var workerPath = 'https://github.com/bgrins/videoconverter.js/blob/master/build/ffmpeg-all-codecs.js?raw=true';
                 if(document.domain == 'localhost') {
                     workerPath = location.href.replace(location.href.split('/').pop(), '') + 'ffmpeg_asm.js';
@@ -207,7 +207,7 @@
 
                         worker.postMessage({
                             type: 'command',
-                            arguments: '-i video.webm -vf scale=1920:1080 -c:v libx264 -b:v 620k -strict experimental output.mp4'.split(' '),
+                            arguments: '-i video.webm -vf scale=720:480 -c:v libx264 -b:v 620k -strict experimental output.mp4'.split(' '),
                             files: [
                                 {
                                     data: new Uint8Array(aab),
